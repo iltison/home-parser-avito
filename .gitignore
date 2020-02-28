@@ -1,3 +1,4 @@
-.gitignore
+*
+!.gitignore
 read.txt
 *.csv
