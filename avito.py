@@ -3,7 +3,7 @@ import requests
 import csv
 import pandas as pd
 import numpy as np
-link = 'https://www.avito.ru/asha/doma_dachi_kottedzhi/prodam-ASgBAgICAUSUA9AQ?cd=1&p=4'
+link = 'https://www.avito.ru/asha/doma_dachi_kottedzhi/prodam-ASgBAgICAUSUA9AQ?cd=1&p='
 
 
 class avito_parser():
@@ -20,38 +20,46 @@ class avito_parser():
         return int(pages)
     
     def processing_data(self,tree,pages):
-        all_tittle = []
-        all_prices = []
-        all_adress = []
+        tittle = tree.find_all('a', {'class' : 'snippet-link'})
+        tittle = [tl.text for tl in tittle]
+        prices = tree.find_all('span', {'class' : 'snippet-price'}) 
+        prices = [pr.text for pr in prices]
+        adress = tree.find_all('span', {'class' : 'item-address__string'}) 
+        adress = [adr.text for adr in adress]
 
-        for p in range(pages):
-            tittle = tree.find_all('a', {'class' : 'snippet-link'})
-            for tl in tittle:
-                all_tittle.append(tl.text)
-            prices = tree.find_all('span', {'class' : 'snippet-price'}) 
-            for pr in prices:
-                all_prices.append(pr.text)
-            adress = tree.find_all('span', {'class' : 'item-address__string'}) 
-            for adr in adress:
-                all_adress.append(adr.text)
         data = { 
-        'name': all_tittle,
-        'price': all_prices,
-        'adress': all_adress
+        'name': tittle,
+        'price': prices,
+        'adress': adress
         }
+
         return data
 
     def save_data(self,data):
-        df = pd.DataFrame(data = data)
-        df.to_csv('s.csv')
+        try:
+            df = pd.read_csv('avito.csv')
+            df2 = pd.DataFrame(data = data)
+            df3 = pd.concat([df, df2], ignore_index=True,sort=False)
+            df3[['name','price','adress']].to_csv('avito.csv')
+        except:
+            df = pd.DataFrame(data = data)
+            df.to_csv('avito.csv')
+        
+
 
     def run(self):
         response = self.get_html(link)
         tree = self.parse_link(response)
         pages = self.get_pages(tree)
 
-        data = self.processing_data(tree,pages)
-        self.save_data(data)
+        for i in range(1,pages + 1):
+            link_page = link + str(i)
+            response = self.get_html(link_page)
+            print(link_page)
+            tree = self.parse_link(response)
+            data = self.processing_data(tree,pages)
+            self.save_data(data)
+        
 
 if __name__ == '__main__':
     avito_parser().run()
