@@ -3,7 +3,7 @@ import requests
 import csv
 import pandas as pd
 import numpy as np
-link = 'https://www.avito.ru/asha/doma_dachi_kottedzhi/prodam-ASgBAgICAUSUA9AQ?cd=1&p='
+link = ''
 
 
 class avito_parser():
@@ -44,8 +44,6 @@ class avito_parser():
         except:
             df = pd.DataFrame(data = data)
             df.to_csv('avito.csv')
-        
-
 
     def run(self):
         response = self.get_html(link)
