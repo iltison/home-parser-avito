@@ -1,4 +1,5 @@
-*
-!.gitignore
 read.txt
 *.csv
+.vscode
+__pycache__
+.gitignore
