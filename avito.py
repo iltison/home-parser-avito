@@ -3,7 +3,12 @@ import requests
 import csv
 import pandas as pd
 import numpy as np
-link = ''
+
+from datetime import datetime, date
+name_csv = str(datetime.today().date()) + '.csv'
+
+
+from setting import link_home as link
 
 
 class avito_parser():
@@ -21,29 +26,36 @@ class avito_parser():
     
     def processing_data(self,tree,pages):
         tittle = tree.find_all('a', {'class' : 'snippet-link'})
-        tittle = [tl.text for tl in tittle]
+        area = [tl.text.split(' ')[1] for tl in tittle]
+        territory = [tl.text.split(' ')[5] for tl in tittle]
+        href = [tl.get('href') for tl in tittle]
+
+
         prices = tree.find_all('span', {'class' : 'snippet-price'}) 
-        prices = [pr.text for pr in prices]
+        prices = [''.join(pr.text.split(' ')[1:-2]) for pr in prices]
         adress = tree.find_all('span', {'class' : 'item-address__string'}) 
-        adress = [adr.text for adr in adress]
+        adress = [' '.join(adr.text.split(' ')[1:-1]) for adr in adress]
 
         data = { 
-        'name': tittle,
+        'area': area,
+        'territory': territory,
         'price': prices,
-        'adress': adress
+        'adress': adress,
+        'href': href
         }
 
         return data
 
     def save_data(self,data):
         try:
-            df = pd.read_csv('avito.csv')
+            df = pd.read_csv('home/' + name_csv)
             df2 = pd.DataFrame(data = data)
             df3 = pd.concat([df, df2], ignore_index=True,sort=False)
-            df3[['name','price','adress']].to_csv('avito.csv')
+            df3[['area','territory','price','adress','href']].to_csv('home/' + name_csv)
         except:
             df = pd.DataFrame(data = data)
-            df.to_csv('avito.csv')
+            df.to_csv('home/' + name_csv)
+        print(df.shape)
 
     def run(self):
         response = self.get_html(link)
